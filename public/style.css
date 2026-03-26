@@ -886,3 +886,18 @@ body {
     color: #FFF;
     background: rgba(255, 255, 255, 0.1);
 }
+/* --- DESKTOP GRID LAYOUT OVERRIDES --- */
+@media (min-width: 1024px) {
+    .app-wrapper { max-width: 1200px; height: 85vh; }
+    #screen-dashboard { display: grid; grid-template-columns: 400px 1fr; overflow: hidden; background: rgba(0,0,0,0.5); }
+    .dashboard-left { overflow-y: auto; height: 100%; border-right: 1px solid var(--panel-border); }
+    .dashboard-right { display: flex; flex-direction: column; position: relative; height: 100%; }
+    .quests-section { padding-bottom: 2rem; }
+    .dashboard-spacer { display: none; }
+    .fab-btn { position: absolute; width: 80%; background: rgba(0,50,100,0.9); }
+}
+@media (max-width: 1023px) {
+    .dashboard-left, .dashboard-right { display: contents; }
+}
+.system-quest { border-color: rgba(250,204,21,0.5) !important; background: rgba(250,204,21,0.05) !important; }
+.system-quest::before { background: var(--sys-gold) !important; box-shadow: 0 0 10px rgba(250,204,21,0.5) !important; }

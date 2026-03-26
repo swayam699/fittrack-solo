@@ -24,6 +24,7 @@ const elements = {
     aiWeight: document.getElementById('ai-weight'),
     aiHeight: document.getElementById('ai-height'),
     aiGoal: document.getElementById('ai-goal'),
+    aiDifficulty: document.getElementById('ai-difficulty'),
     btnAutoGen: document.getElementById('btn-auto-gen'),
 
     // Dashboard
@@ -88,7 +89,6 @@ async function navigate() {
                 screens.dashboard.classList.add('active');
                 initDashboard();
 
-                // Trigger Jin-Woo logic if totally new
                 if (playerStats.level === 1 && playerStats.exp === 0 && !localStorage.getItem('tutorial_seen_' + user)) {
                     elements.tutorialModal.classList.add('active');
                 }
@@ -121,17 +121,16 @@ elements.btnAutoGen.addEventListener('click', () => {
         return;
     }
 
-    // Basal Metabolic Rate Math (Mifflin-St Jeor rough avg)
     let bmr = (10 * w) + (6.25 * h) - (5 * 25) + 5;
-    let tdee = bmr * 1.55; // Moderate activity multiplier
+    let tdee = bmr * 1.55;
 
     let targetCals = 0;
-    let targetProtein = Math.round(w * 2.2); // 2.2g per kg highly optimal
+    let targetProtein = Math.round(w * 2.2);
     let workoutPlan = "";
 
     if (goal === 'cut') {
         targetCals = Math.round(tdee - 500);
-        workoutPlan = `Mon: Push (Chest, Shoulders, Triceps) + 20m Cardio\nTue: Pull (Back, Biceps) + Core\nWed: Active Rest / Walk\nThu: Legs (Quads, Hams, Calves)\nFri: Upper Body Power + 20m Cardio\nSat: Lower Body Volume\nSun: Complete Rest`;
+        workoutPlan = `Mon: Push (Chest, Shoulders, Triceps) + Cardio\nTue: Pull (Back, Biceps) + Core\nWed: Active Rest / Walk\nThu: Legs (Quads, Hams, Calves)\nFri: Upper Body Power + Cardio\nSat: Lower Body Volume\nSun: Complete Rest`;
     } else {
         targetCals = Math.round(tdee + 350);
         workoutPlan = `Mon: Heavy Chest & Triceps (Hypertrophy)\nTue: Heavy Back & Biceps\nWed: Rest & Recover\nThu: Heavy Legs (Squat focus)\nFri: Shoulders, Arms, & Core\nSat: Full Body Weakpoints focus\nSun: Eat & Recover`;
@@ -141,12 +140,10 @@ elements.btnAutoGen.addEventListener('click', () => {
     elements.setupProtein.value = targetProtein;
     elements.setupWorkout.value = workoutPlan;
 
-    // Flash border effect
     const panel = document.getElementById('ai-panel');
     panel.style.boxShadow = "inset 0 0 20px var(--sys-gold)";
     setTimeout(() => panel.style.boxShadow = "none", 500);
 });
-
 
 elements.btnAcceptQuest.addEventListener('click', async () => {
     const cals = elements.setupCals.value.trim();
@@ -156,7 +153,16 @@ elements.btnAcceptQuest.addEventListener('click', async () => {
     if (cals && protein && workout) {
         elements.btnAcceptQuest.textContent = 'SYNCING...';
         const sDate = (mainQuest && mainQuest.startDate) ? mainQuest.startDate : getTodayString();
-        mainQuest = { startDate: sDate, cals, protein, workout };
+
+        mainQuest = {
+            startDate: sDate,
+            cals,
+            protein,
+            workout,
+            goal: elements.aiGoal.value,
+            difficulty: elements.aiDifficulty ? elements.aiDifficulty.value : 'e'
+        };
+
         await apiCall('/api/player/quest', 'POST', { userId: user, ...mainQuest });
         navigate();
     } else {
@@ -181,7 +187,6 @@ elements.btnLogout.addEventListener('click', () => {
     location.reload();
 });
 
-// Tutorial Dismiss
 elements.btnCloseTutorial.addEventListener('click', () => {
     elements.tutorialModal.classList.remove('active');
     localStorage.setItem('tutorial_seen_' + user, 'true');
@@ -210,6 +215,42 @@ function getRank(level) {
 }
 
 // --- GAME LOGIC ---
+function generateDailySystemQuests() {
+    const today = getTodayString();
+    if (localStorage.getItem('last_quest_gen_date_' + user) === today) return;
+
+    // System Assignment Algorithm
+    const dayOfWeek = new Date().getDay(); // 0 = Sun, 1 = Mon, etc
+    const diff = mainQuest.difficulty || 'e';
+    const goal = mainQuest.goal || 'cut';
+
+    const mult = diff === 'e' ? 1 : (diff === 'c' ? 2 : 4);
+    let newQuests = [];
+
+    newQuests.push(`[SYSTEM] Consume exactly ${mainQuest.cals} kcal`);
+    newQuests.push(`[SYSTEM] Hit ${mainQuest.protein}g Protein Target`);
+
+    if (goal === 'cut') {
+        if (dayOfWeek === 1 || dayOfWeek === 5) newQuests.push(`[SYSTEM] Complete ${30 * mult} Pushups & ${15 * mult}m Cardio`);
+        else if (dayOfWeek === 2) newQuests.push(`[SYSTEM] Complete ${15 * mult} Pull-Ups or Rows`);
+        else if (dayOfWeek === 4 || dayOfWeek === 6) newQuests.push(`[SYSTEM] Complete ${50 * mult} Squats`);
+        else newQuests.push(`[SYSTEM] Active Recovery: ${4000 * mult} Steps`);
+    } else {
+        if (dayOfWeek === 1) newQuests.push(`[SYSTEM] Heavy Chest: Bench Press limits`);
+        else if (dayOfWeek === 2) newQuests.push(`[SYSTEM] Heavy Back: Deadlifts or Barbell Rows`);
+        else if (dayOfWeek === 4) newQuests.push(`[SYSTEM] Heavy Legs: Squats 4x6`);
+        else if (dayOfWeek === 5) newQuests.push(`[SYSTEM] Heavy Shoulders: OHP limits`);
+        else if (dayOfWeek === 6) newQuests.push(`[SYSTEM] Full Body Weakpoint isolation`);
+        else newQuests.push(`[SYSTEM] Rest & Eat heavily`);
+    }
+
+    newQuests.forEach(async (qName) => {
+        await fetchAddHabit(qName);
+    });
+
+    localStorage.setItem('last_quest_gen_date_' + user, today);
+}
+
 function processHabitStreaks() {
     const today = getTodayString();
     let hasChanges = false;
@@ -293,7 +334,7 @@ function toggleHabit(idStr) {
 async function fetchAddHabit(name) {
     const dbHabit = await apiCall('/api/habits', 'POST', { userId: user, name });
     if (dbHabit && dbHabit._id) {
-        habits.push(dbHabit);
+        habits.unshift(dbHabit); // Add to top usually, pushing to array updates UI.
         renderHabits();
     }
 }
@@ -327,16 +368,23 @@ function renderHabits() {
     }
     habits.forEach(habit => {
         const li = document.createElement('li');
-        li.className = `quest-item ${habit.completedToday ? 'completed' : ''}`;
+        const isSystem = habit.name.includes('[SYSTEM]');
+        li.className = `quest-item ${habit.completedToday ? 'completed' : ''} ${isSystem ? 'system-quest' : ''}`;
 
         const streakClass = habit.streak >= 3 ? 'high' : '';
         const streakText = habit.streak > 0
             ? `<div class="quest-streak ${streakClass}"><i class="fas fa-angle-double-up"></i> ${habit.streak} DAY COMBO</div>`
             : `<div class="quest-streak" style="opacity:0.5;">INCOMPLETE</div>`;
 
+        // Highlight system quest text slightly differently
+        let displayName = escapeHTML(habit.name);
+        if (isSystem) {
+            displayName = displayName.replace('[SYSTEM]', '<span style="color:var(--sys-gold); font-size:0.8rem; vertical-align:middle; margin-right:5px;">[AI QUEST]</span>');
+        }
+
         li.innerHTML = `
             <div class="checkbox-container" role="button"><div class="custom-checkbox"><i class="fas fa-check"></i></div></div>
-            <div class="quest-content" role="button"><div class="quest-name">${escapeHTML(habit.name)}</div>${streakText}</div>
+            <div class="quest-content" role="button"><div class="quest-name">${displayName}</div>${streakText}</div>
             <button class="delete-btn"><i class="fas fa-times"></i></button>
         `;
 
@@ -360,6 +408,7 @@ function initDashboard() {
         elements.daysLeft.textContent = Math.max(0, 90 - diff);
     }
     processHabitStreaks();
+    generateDailySystemQuests(); // Automatically assign quests
     updateStatsUI();
     renderHabits();
 }

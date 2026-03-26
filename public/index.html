@@ -34,7 +34,7 @@
                 <div id="ai-panel"
                     style="background: rgba(0,229,255,0.05); padding: 1rem; border: 1px dashed var(--sys-blue); margin-bottom: 2rem;">
                     <p style="font-size:0.9rem; color:#9CA3AF; margin-bottom:1rem; text-align:center;">Enter your stats
-                        to let the System automatically generate your optimal Cut or Bulk parameters.</p>
+                        to let the System automatically generate your optimal progression parameters.</p>
                     <div class="flex-row">
                         <div class="form-group flex-1">
                             <label>WEIGHT (kg)</label>
@@ -45,12 +45,24 @@
                             <input type="number" id="ai-height" placeholder="e.g. 175" class="sys-input">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>OBJECTIVE</label>
-                        <select id="ai-goal" class="sys-input" style="background: rgba(0,0,0,0.8); cursor: pointer;">
-                            <option value="cut">CUT (Lose Body Fat)</option>
-                            <option value="bulk">BULK (Build Muscle Mass)</option>
-                        </select>
+                    <div class="flex-row">
+                        <div class="form-group flex-1">
+                            <label>OBJECTIVE</label>
+                            <select id="ai-goal" class="sys-input"
+                                style="background: rgba(0,0,0,0.8); cursor: pointer;">
+                                <option value="cut">CUT (Lose Body Fat)</option>
+                                <option value="bulk">BULK (Build Muscle)</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>DIFFICULTY</label>
+                            <select id="ai-difficulty" class="sys-input"
+                                style="background: rgba(0,0,0,0.8); cursor: pointer;">
+                                <option value="e">E-Rank (Easy)</option>
+                                <option value="c">C-Rank (Medium)</option>
+                                <option value="a">A-Rank (Hard!)</option>
+                            </select>
+                        </div>
                     </div>
                     <button id="btn-auto-gen" class="btn-sys" style="margin-top:0.5rem; padding: 0.75rem;"><i
                             class="fas fa-magic"></i> AUTO-GENERATE PLAN</button>
@@ -103,91 +115,6 @@
                 </div>
             </div>
 
-            <header class="header">
-                <div class="header-top">
-                    <div class="sys-title">[SYSTEM] STATUS</div>
-                    <button id="btn-logout" class="btn-text-only" title="System Logout"><i
-                            class="fas fa-power-off"></i></button>
-                </div>
-                <div class="player-info">
-                    <div class="player-details">
-                        <h1 class="player-name" id="display-player-name">PLAYER</h1>
-                        <span class="player-job">Job: Shadow Monarch In-Training</span>
-                    </div>
-                    <div class="player-rank">
-                        <span id="rank-badge" class="rank-badge rank-e">E-Rank</span>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <span class="stat-label">LEVEL</span>
-                        <span class="stat-value" id="player-level">1</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">STRENGTH</span>
-                        <span class="stat-value" id="player-str">10</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">AGILITY</span>
-                        <span class="stat-value" id="player-agi">10</span>
-                    </div>
-                </div>
-
-                <div class="exp-container">
-                    <div class="exp-header">
-                        <span class="exp-label">EXP</span>
-                        <span class="exp-text" id="exp-text">0 / 100</span>
-                    </div>
-                    <div class="exp-bar-bg">
-                        <div class="exp-bar-fill" id="exp-bar"></div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- 90 Day Transformation Banner -->
-            <section class="transformation-section">
-                <div class="trans-header">
-                    <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION <i class="fas fa-edit text-cyan"
-                            id="btn-edit-quest"
-                            style="cursor:pointer; margin-left: 10px; font-size: 0.9rem; transition: 0.3s;"
-                            title="Edit Parameters"></i></span>
-                    <span class="days-remaining">DAYS LEFT: <span id="days-left" class="text-cyan">90</span></span>
-                </div>
-                <div class="trans-content">
-                    <div class="trans-macros">
-                        <div class="macro-box">
-                            <span class="macro-label">TAR. CALORIES</span>
-                            <span class="macro-value text-gold" id="disp-cals">0</span>
-                        </div>
-                        <div class="macro-box">
-                            <span class="macro-label">TAR. PROTEIN</span>
-                            <span class="macro-value text-gold"><span id="disp-protein">0</span>g</span>
-                        </div>
-                    </div>
-                    <div class="trans-workout">
-                        <div class="workout-title">WEEKLY WORKOUT PLAN</div>
-                        <div class="workout-text" id="disp-workout"></div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="quests-section">
-                <div class="section-title">
-                    <i class="fas fa-exclamation-circle text-cyan pulse"></i> DAILY QUESTS
-                </div>
-                <ul class="quest-list" id="habit-list">
-                    <!-- Quests via JS -->
-                </ul>
-
-                <!-- MASSIVE SPACER TO GUARANTEE OVERLAP FIX -->
-                <div style="height: 150px; width: 100%; border: 1px dashed transparent;"></div>
-            </section>
-
-            <button class="fab-btn" id="add-fab-btn">
-                <i class="fas fa-plus"></i> ADD QUEST
-            </button>
-
             <!-- Quest Add Modal -->
             <div class="modal-overlay" id="add-modal">
                 <div class="modal system-window">
@@ -200,6 +127,95 @@
                             style="width: auto; padding: 0.5rem 1.5rem; margin-top: 0;">CONFIRM</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="dashboard-left">
+                <header class="header">
+                    <div class="header-top">
+                        <div class="sys-title">[SYSTEM] STATUS</div>
+                        <button id="btn-logout" class="btn-text-only" title="System Logout"><i
+                                class="fas fa-power-off"></i></button>
+                    </div>
+                    <div class="player-info">
+                        <div class="player-details">
+                            <h1 class="player-name" id="display-player-name">PLAYER</h1>
+                            <span class="player-job">Job: Shadow Monarch In-Training</span>
+                        </div>
+                        <div class="player-rank">
+                            <span id="rank-badge" class="rank-badge rank-e">E-Rank</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">LEVEL</span>
+                            <span class="stat-value" id="player-level">1</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">STRENGTH</span>
+                            <span class="stat-value" id="player-str">10</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">AGILITY</span>
+                            <span class="stat-value" id="player-agi">10</span>
+                        </div>
+                    </div>
+
+                    <div class="exp-container">
+                        <div class="exp-header">
+                            <span class="exp-label">EXP</span>
+                            <span class="exp-text" id="exp-text">0 / 100</span>
+                        </div>
+                        <div class="exp-bar-bg">
+                            <div class="exp-bar-fill" id="exp-bar"></div>
+                        </div>
+                    </div>
+                </header>
+
+                <section class="transformation-section">
+                    <div class="trans-header">
+                        <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION <i
+                                class="fas fa-edit text-cyan" id="btn-edit-quest"
+                                style="cursor:pointer; margin-left: 10px; font-size: 0.9rem; transition: 0.3s;"
+                                title="Edit Parameters"></i></span>
+                        <span class="days-remaining">DAYS LEFT: <span id="days-left" class="text-cyan">90</span></span>
+                    </div>
+                    <div class="trans-content">
+                        <div class="trans-macros">
+                            <div class="macro-box">
+                                <span class="macro-label">TAR. CALORIES</span>
+                                <span class="macro-value text-gold" id="disp-cals">0</span>
+                            </div>
+                            <div class="macro-box">
+                                <span class="macro-label">TAR. PROTEIN</span>
+                                <span class="macro-value text-gold"><span id="disp-protein">0</span>g</span>
+                            </div>
+                        </div>
+                        <div class="trans-workout">
+                            <div class="workout-title">WEEKLY WORKOUT PLAN</div>
+                            <div class="workout-text" id="disp-workout"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="dashboard-right">
+                <section class="quests-section">
+                    <div class="section-title">
+                        <i class="fas fa-exclamation-circle text-cyan pulse"></i> DAILY QUESTS
+                    </div>
+                    <ul class="quest-list" id="habit-list">
+                        <!-- Quests via JS -->
+                    </ul>
+
+                    <!-- SPACER FOR MOBILE TO GUARANTEE NO FAB OVERLAP -->
+                    <div class="dashboard-spacer" style="height: 120px; width: 100%; border: 1px dashed transparent;">
+                    </div>
+                </section>
+
+                <button class="fab-btn" id="add-fab-btn">
+                    <i class="fas fa-plus"></i> ADD QUEST
+                </button>
             </div>
         </div>
 
