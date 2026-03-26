@@ -41,11 +41,6 @@ const elements = {
     playerStr: document.getElementById('player-str'),
     playerAgi: document.getElementById('player-agi'),
     rankBadge: document.getElementById('rank-badge'),
-    addFabBtn: document.getElementById('add-fab-btn'),
-    addModal: document.getElementById('add-modal'),
-    habitInput: document.getElementById('habit-input'),
-    cancelBtn: document.getElementById('cancel-btn'),
-    saveBtn: document.getElementById('save-btn'),
     levelUpOverlay: document.getElementById('level-up-overlay'),
 
     // Tutorial
@@ -220,33 +215,37 @@ function generateDailySystemQuests() {
     const today = getTodayString();
     if (localStorage.getItem('last_quest_gen_date_' + user) === today) return;
 
-    // System Assignment Algorithm
-    const dayOfWeek = new Date().getDay(); // 0 = Sun, 1 = Mon, etc
+    // System Assignment Algorithm 
+    // Purely dictating user's quests algorithmically.
+    const dayOfWeek = new Date().getDay();
     const diff = mainQuest.difficulty || 'e';
     const goal = mainQuest.goal || 'cut';
 
     const mult = diff === 'e' ? 1 : (diff === 'c' ? 2 : 4);
     let newQuests = [];
 
-    newQuests.push(`[SYSTEM] Consume exactly ${mainQuest.cals} kcal`);
-    newQuests.push(`[SYSTEM] Hit ${mainQuest.protein}g Protein Target`);
+    newQuests.push(`[SYSTEM] Restrict to exactly ${mainQuest.cals} Calories`);
+    newQuests.push(`[SYSTEM] Consume ${mainQuest.protein}g Protein limit`);
 
     if (goal === 'cut') {
         if (dayOfWeek === 1 || dayOfWeek === 5) newQuests.push(`[SYSTEM] Complete ${30 * mult} Pushups & ${15 * mult}m Cardio`);
-        else if (dayOfWeek === 2) newQuests.push(`[SYSTEM] Complete ${15 * mult} Pull-Ups or Rows`);
-        else if (dayOfWeek === 4 || dayOfWeek === 6) newQuests.push(`[SYSTEM] Complete ${50 * mult} Squats`);
-        else newQuests.push(`[SYSTEM] Active Recovery: ${4000 * mult} Steps`);
+        else if (dayOfWeek === 2) newQuests.push(`[SYSTEM] Complete ${15 * mult} Pull-Ups or Heavy Rows`);
+        else if (dayOfWeek === 4 || dayOfWeek === 6) newQuests.push(`[SYSTEM] Complete ${50 * mult} Deep Squats`);
+        else newQuests.push(`[SYSTEM] Active Recovery: Complete ${4000 * mult} Steps`);
     } else {
         if (dayOfWeek === 1) newQuests.push(`[SYSTEM] Heavy Chest: Bench Press limits`);
         else if (dayOfWeek === 2) newQuests.push(`[SYSTEM] Heavy Back: Deadlifts or Barbell Rows`);
         else if (dayOfWeek === 4) newQuests.push(`[SYSTEM] Heavy Legs: Squats 4x6`);
         else if (dayOfWeek === 5) newQuests.push(`[SYSTEM] Heavy Shoulders: OHP limits`);
         else if (dayOfWeek === 6) newQuests.push(`[SYSTEM] Full Body Weakpoint isolation`);
-        else newQuests.push(`[SYSTEM] Rest & Eat heavily`);
+        else newQuests.push(`[SYSTEM] Rest & Bulk heavily`);
     }
 
     newQuests.forEach(async (qName) => {
-        await fetchAddHabit(qName);
+        // Double check it doesn't already exist today to prevent DB spam
+        if (!habits.some(h => h.name === qName && h.lastCompletedDate === today)) {
+            await fetchAddHabit(qName);
+        }
     });
 
     localStorage.setItem('last_quest_gen_date_' + user, today);
@@ -340,6 +339,8 @@ async function fetchAddHabit(name) {
     }
 }
 
+// Since users can no longer manually add quests, deleting is hidden from the UI mostly,
+// but the API call exists in case the backend wipes old ones automatically.
 async function fetchDeleteHabit(idStr) {
     habits = habits.filter(h => h._id !== idStr);
     renderHabits();
@@ -364,7 +365,7 @@ function updateStatsUI() {
 function renderHabits() {
     elements.habitList.innerHTML = '';
     if (habits.length === 0) {
-        elements.habitList.innerHTML = `<div style="text-align:center; color:#4B5563; padding:2rem 0; letter-spacing:2px;">NO ACTIVE QUESTS</div>`;
+        elements.habitList.innerHTML = `<div style="text-align:center; color:#4B5563; padding:2rem 0; letter-spacing:2px;">AWAITING SYSTEM ASSIGNMENT...</div>`;
         return;
     }
     habits.forEach(habit => {
@@ -383,15 +384,14 @@ function renderHabits() {
             displayName = displayName.replace('[SYSTEM]', '<span style="color:var(--sys-gold); font-size:0.8rem; vertical-align:middle; margin-right:5px;">[AI QUEST]</span>');
         }
 
+        // Removed the physical delete 'x' button entirely so players MUST rely on the AI.
         li.innerHTML = `
             <div class="checkbox-container" role="button"><div class="custom-checkbox"><i class="fas fa-check"></i></div></div>
             <div class="quest-content" role="button"><div class="quest-name">${displayName}</div>${streakText}</div>
-            <button class="delete-btn"><i class="fas fa-times"></i></button>
         `;
 
         li.querySelector('.checkbox-container').addEventListener('click', () => toggleHabit(habit._id));
         li.querySelector('.quest-content').addEventListener('click', () => toggleHabit(habit._id));
-        li.querySelector('.delete-btn').addEventListener('click', (e) => { e.stopPropagation(); fetchDeleteHabit(habit._id); });
         elements.habitList.appendChild(li);
     });
 }
@@ -409,21 +409,10 @@ function initDashboard() {
         elements.daysLeft.textContent = Math.max(0, 90 - diff);
     }
     processHabitStreaks();
-    generateDailySystemQuests(); // Automatically assign quests
+    generateDailySystemQuests(); // Automatically assign AI quests
     updateStatsUI();
     renderHabits();
 }
-
-// --- MODALS ---
-function hideModal() { elements.addModal.classList.remove('active'); elements.habitInput.value = ''; }
-elements.addFabBtn.addEventListener('click', () => { elements.addModal.classList.add('active'); setTimeout(() => elements.habitInput.focus(), 100); });
-elements.cancelBtn.addEventListener('click', hideModal);
-elements.saveBtn.addEventListener('click', () => {
-    const name = elements.habitInput.value.trim();
-    if (name) { fetchAddHabit(name); hideModal(); }
-});
-elements.habitInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') elements.saveBtn.click(); });
-elements.addModal.addEventListener('click', (e) => { if (e.target === elements.addModal) hideModal(); });
 
 // APP START
 navigate();

@@ -107,25 +107,12 @@
                     <div class="tutorial-text" id="tutorial-text"
                         style="line-height: 1.7; margin-bottom: 1.5rem; font-size: 1.15rem; color: #FFF;">
                         "Arise, Player.<br><br>The System chose you for a reason. Your 90-Day transformation begins
-                        today.<br><br>Complete your Daily Quests below to gain EXP. If you complete them everyday, your
-                        Combo Streak will multiply your gains.<br><br>Do not fail. Weakness is a choice."
+                        today.<br><br>The System will automatically issue your Daily Quests every morning. If you
+                        complete them everyday, your Combo Streak will multiply your EXP gains.<br><br>Do not fail.
+                        Weakness is a choice."
                     </div>
                     <button class="btn-sys" id="btn-close-tutorial"
                         style="border-color: var(--sys-gold); color: var(--sys-gold); box-shadow: 0 0 15px rgba(250,204,21,0.2);">UNDERSTOOD</button>
-                </div>
-            </div>
-
-            <!-- Quest Add Modal -->
-            <div class="modal-overlay" id="add-modal">
-                <div class="modal system-window">
-                    <div class="modal-header">ASSIGN NEW QUEST</div>
-                    <input type="text" id="habit-input" placeholder="e.g. 100 Pushups" autocomplete="off"
-                        class="sys-input">
-                    <div class="modal-actions">
-                        <button class="btn-cancel" id="cancel-btn">CANCEL</button>
-                        <button class="btn-sys" id="save-btn"
-                            style="width: auto; padding: 0.5rem 1.5rem; margin-top: 0;">CONFIRM</button>
-                    </div>
                 </div>
             </div>
 
@@ -172,7 +159,19 @@
                     </div>
                 </header>
 
-                <section class="transformation-section">
+                <section class="quests-section" style="padding-bottom: 2rem;">
+                    <div class="section-title">
+                        <i class="fas fa-exclamation-circle text-cyan pulse"></i> DAILY SYSTEM QUESTS
+                    </div>
+                    <ul class="quest-list" id="habit-list">
+                        <!-- Quests mapped by backend JS generator -->
+                    </ul>
+                </section>
+            </div>
+
+            <div class="dashboard-right">
+                <section class="transformation-section"
+                    style="border-top: none; height: 100%; border-left: 1px solid var(--panel-border);">
                     <div class="trans-header">
                         <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION <i
                                 class="fas fa-edit text-cyan" id="btn-edit-quest"
@@ -197,25 +196,6 @@
                         </div>
                     </div>
                 </section>
-            </div>
-
-            <div class="dashboard-right">
-                <section class="quests-section">
-                    <div class="section-title">
-                        <i class="fas fa-exclamation-circle text-cyan pulse"></i> DAILY QUESTS
-                    </div>
-                    <ul class="quest-list" id="habit-list">
-                        <!-- Quests via JS -->
-                    </ul>
-
-                    <!-- SPACER FOR MOBILE TO GUARANTEE NO FAB OVERLAP -->
-                    <div class="dashboard-spacer" style="height: 120px; width: 100%; border: 1px dashed transparent;">
-                    </div>
-                </section>
-
-                <button class="fab-btn" id="add-fab-btn">
-                    <i class="fas fa-plus"></i> ADD QUEST
-                </button>
             </div>
         </div>
 
