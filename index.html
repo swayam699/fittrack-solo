@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System - Solo Leveling Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <!-- SCREEN 1: LOGIN -->
+        <div id="screen-login" class="screen active">
+            <div class="system-window auth-window">
+                <div class="sys-title text-center">[SYSTEM INITIALIZATION]</div>
+                <h2 class="auth-heading">AWAKEN YOUR POTENTIAL</h2>
+                <div class="form-group">
+                    <input type="text" id="login-username" placeholder="PLAYER ID (Name)" autocomplete="off">
+                </div>
+                <button id="btn-awaken" class="btn-sys pulse-button">AWAKEN</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: 90-DAY SETUP -->
+        <div id="screen-setup" class="screen hidden" style="overflow-y: auto; padding: 1rem 0;">
+            <div class="system-window setup-window">
+                <div class="sys-title text-center text-cyan">[SYSTEM ASSESSMENT AI]</div>
+
+                <!-- AI Generator Panel -->
+                <div id="ai-panel"
+                    style="background: rgba(0,229,255,0.05); padding: 1rem; border: 1px dashed var(--sys-blue); margin-bottom: 2rem;">
+                    <p style="font-size:0.9rem; color:#9CA3AF; margin-bottom:1rem; text-align:center;">Enter your stats
+                        to let the System automatically generate your optimal progression parameters.</p>
+                    <div class="flex-row">
+                        <div class="form-group flex-1">
+                            <label>WEIGHT (kg)</label>
+                            <input type="number" id="ai-weight" placeholder="e.g. 75" class="sys-input">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>HEIGHT (cm)</label>
+                            <input type="number" id="ai-height" placeholder="e.g. 175" class="sys-input">
+                        </div>
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group flex-1">
+                            <label>OBJECTIVE</label>
+                            <select id="ai-goal" class="sys-input"
+                                style="background: rgba(0,0,0,0.8); cursor: pointer;">
+                                <option value="cut">CUT (Lose Body Fat)</option>
+                                <option value="bulk">BULK (Build Muscle)</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>DIFFICULTY</label>
+                            <select id="ai-difficulty" class="sys-input"
+                                style="background: rgba(0,0,0,0.8); cursor: pointer;">
+                                <option value="e">E-Rank (Easy)</option>
+                                <option value="c">C-Rank (Medium)</option>
+                                <option value="a">A-Rank (Hard!)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="btn-auto-gen" class="btn-sys" style="margin-top:0.5rem; padding: 0.75rem;"><i
+                            class="fas fa-magic"></i> AUTO-GENERATE PLAN</button>
+                </div>
+
+                <div class="sys-title text-center">[QUEST PARAMETERS]</div>
+                <div class="flex-row">
+                    <div class="form-group flex-1">
+                        <label>DAILY CALORIES</label>
+                        <input type="number" id="setup-cals" placeholder="e.g. 2500" class="sys-input">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label>PROTEIN (g)</label>
+                        <input type="number" id="setup-protein" placeholder="e.g. 180" class="sys-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>WEEKLY WORKOUT PLAN</label>
+                    <textarea id="setup-workout"
+                        placeholder="Mon: Chest & Triceps&#10;Tue: Back & Biceps..."></textarea>
+                </div>
+
+                <button id="btn-accept-quest" class="btn-sys pulse-button">ACCEPT QUEST</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: DASHBOARD -->
+        <div id="screen-dashboard" class="screen hidden system-container">
+            <!-- Level Up Overlay -->
+            <div id="level-up-overlay" class="level-up-overlay">
+                <div class="level-up-text">LEVEL UP!</div>
+                <div class="level-up-subtext">Your stats have increased.</div>
+            </div>
+
+            <!-- Jin Woo Tutorial Modal -->
+            <div class="modal-overlay" id="tutorial-modal">
+                <div class="modal system-window" style="border-color: var(--sys-gold); max-width: 90%;">
+                    <div class="modal-header text-gold"
+                        style="font-size: 1.5rem; border-bottom: 1px solid rgba(250,204,21,0.3); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        SUNG JIN-WOO</div>
+                    <div class="tutorial-text" id="tutorial-text"
+                        style="line-height: 1.7; margin-bottom: 1.5rem; font-size: 1.15rem; color: #FFF;">
+                        "Arise, Player.<br><br>The System chose you for a reason. Your 90-Day transformation begins
+                        today.<br><br>Complete your Daily Quests below to gain EXP. If you complete them everyday, your
+                        Combo Streak will multiply your gains.<br><br>Do not fail. Weakness is a choice."
+                    </div>
+                    <button class="btn-sys" id="btn-close-tutorial"
+                        style="border-color: var(--sys-gold); color: var(--sys-gold); box-shadow: 0 0 15px rgba(250,204,21,0.2);">UNDERSTOOD</button>
+                </div>
+            </div>
+
+            <!-- Quest Add Modal -->
+            <div class="modal-overlay" id="add-modal">
+                <div class="modal system-window">
+                    <div class="modal-header">ASSIGN NEW QUEST</div>
+                    <input type="text" id="habit-input" placeholder="e.g. 100 Pushups" autocomplete="off"
+                        class="sys-input">
+                    <div class="modal-actions">
+                        <button class="btn-cancel" id="cancel-btn">CANCEL</button>
+                        <button class="btn-sys" id="save-btn"
+                            style="width: auto; padding: 0.5rem 1.5rem; margin-top: 0;">CONFIRM</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-left">
+                <header class="header">
+                    <div class="header-top">
+                        <div class="sys-title">[SYSTEM] STATUS</div>
+                        <button id="btn-logout" class="btn-text-only" title="System Logout"><i
+                                class="fas fa-power-off"></i></button>
+                    </div>
+                    <div class="player-info">
+                        <div class="player-details">
+                            <h1 class="player-name" id="display-player-name">PLAYER</h1>
+                            <span class="player-job">Job: Shadow Monarch In-Training</span>
+                        </div>
+                        <div class="player-rank">
+                            <span id="rank-badge" class="rank-badge rank-e">E-Rank</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">LEVEL</span>
+                            <span class="stat-value" id="player-level">1</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">STRENGTH</span>
+                            <span class="stat-value" id="player-str">10</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">AGILITY</span>
+                            <span class="stat-value" id="player-agi">10</span>
+                        </div>
+                    </div>
+
+                    <div class="exp-container">
+                        <div class="exp-header">
+                            <span class="exp-label">EXP</span>
+                            <span class="exp-text" id="exp-text">0 / 100</span>
+                        </div>
+                        <div class="exp-bar-bg">
+                            <div class="exp-bar-fill" id="exp-bar"></div>
+                        </div>
+                    </div>
+                </header>
+
+                <section class="transformation-section">
+                    <div class="trans-header">
+                        <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION <i
+                                class="fas fa-edit text-cyan" id="btn-edit-quest"
+                                style="cursor:pointer; margin-left: 10px; font-size: 0.9rem; transition: 0.3s;"
+                                title="Edit Parameters"></i></span>
+                        <span class="days-remaining">DAYS LEFT: <span id="days-left" class="text-cyan">90</span></span>
+                    </div>
+                    <div class="trans-content">
+                        <div class="trans-macros">
+                            <div class="macro-box">
+                                <span class="macro-label">TAR. CALORIES</span>
+                                <span class="macro-value text-gold" id="disp-cals">0</span>
+                            </div>
+                            <div class="macro-box">
+                                <span class="macro-label">TAR. PROTEIN</span>
+                                <span class="macro-value text-gold"><span id="disp-protein">0</span>g</span>
+                            </div>
+                        </div>
+                        <div class="trans-workout">
+                            <div class="workout-title">WEEKLY WORKOUT PLAN</div>
+                            <div class="workout-text" id="disp-workout"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="dashboard-right">
+                <section class="quests-section">
+                    <div class="section-title">
+                        <i class="fas fa-exclamation-circle text-cyan pulse"></i> DAILY QUESTS
+                    </div>
+                    <ul class="quest-list" id="habit-list">
+                        <!-- Quests via JS -->
+                    </ul>
+
+                    <!-- SPACER FOR MOBILE TO GUARANTEE NO FAB OVERLAP -->
+                    <div class="dashboard-spacer" style="height: 120px; width: 100%; border: 1px dashed transparent;">
+                    </div>
+                </section>
+
+                <button class="fab-btn" id="add-fab-btn">
+                    <i class="fas fa-plus"></i> ADD QUEST
+                </button>
+            </div>
+        </div>
+
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
