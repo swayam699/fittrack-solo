@@ -21,28 +21,49 @@
                 <div class="form-group">
                     <input type="text" id="login-username" placeholder="PLAYER ID (Name)" autocomplete="off">
                 </div>
-                <div class="form-group">
-                    <input type="password" id="login-password" placeholder="PASSCODE (Optional)">
-                </div>
                 <button id="btn-awaken" class="btn-sys pulse-button">AWAKEN</button>
             </div>
         </div>
 
         <!-- SCREEN 2: 90-DAY SETUP -->
-        <div id="screen-setup" class="screen hidden">
+        <div id="screen-setup" class="screen hidden" style="overflow-y: auto; padding: 1rem 0;">
             <div class="system-window setup-window">
-                <div class="sys-title text-center">[MAIN QUEST ASSIGNMENT]</div>
-                <h2 class="auth-heading">90-DAY TRANSFORMATION</h2>
-                <p class="setup-desc">Define your physical transformation parameters. Once accepted, the system will
-                    track your progress.</p>
+                <div class="sys-title text-center text-cyan">[SYSTEM ASSESSMENT AI]</div>
 
+                <!-- AI Generator Panel -->
+                <div id="ai-panel"
+                    style="background: rgba(0,229,255,0.05); padding: 1rem; border: 1px dashed var(--sys-blue); margin-bottom: 2rem;">
+                    <p style="font-size:0.9rem; color:#9CA3AF; margin-bottom:1rem; text-align:center;">Enter your stats
+                        to let the System automatically generate your optimal Cut or Bulk parameters.</p>
+                    <div class="flex-row">
+                        <div class="form-group flex-1">
+                            <label>WEIGHT (kg)</label>
+                            <input type="number" id="ai-weight" placeholder="e.g. 75" class="sys-input">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>HEIGHT (cm)</label>
+                            <input type="number" id="ai-height" placeholder="e.g. 175" class="sys-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>OBJECTIVE</label>
+                        <select id="ai-goal" class="sys-input" style="background: rgba(0,0,0,0.8); cursor: pointer;">
+                            <option value="cut">CUT (Lose Body Fat)</option>
+                            <option value="bulk">BULK (Build Muscle Mass)</option>
+                        </select>
+                    </div>
+                    <button id="btn-auto-gen" class="btn-sys" style="margin-top:0.5rem; padding: 0.75rem;"><i
+                            class="fas fa-magic"></i> AUTO-GENERATE PLAN</button>
+                </div>
+
+                <div class="sys-title text-center">[QUEST PARAMETERS]</div>
                 <div class="flex-row">
                     <div class="form-group flex-1">
-                        <label>DAILY CALORIES (kcal)</label>
+                        <label>DAILY CALORIES</label>
                         <input type="number" id="setup-cals" placeholder="e.g. 2500" class="sys-input">
                     </div>
                     <div class="form-group flex-1">
-                        <label>PROTEIN TARGET (g)</label>
+                        <label>PROTEIN (g)</label>
                         <input type="number" id="setup-protein" placeholder="e.g. 180" class="sys-input">
                     </div>
                 </div>
@@ -50,7 +71,7 @@
                 <div class="form-group">
                     <label>WEEKLY WORKOUT PLAN</label>
                     <textarea id="setup-workout"
-                        placeholder="Mon: Chest & Triceps&#10;Tue: Back & Biceps&#10;Wed: Rest..."></textarea>
+                        placeholder="Mon: Chest & Triceps&#10;Tue: Back & Biceps..."></textarea>
                 </div>
 
                 <button id="btn-accept-quest" class="btn-sys pulse-button">ACCEPT QUEST</button>
@@ -63,6 +84,23 @@
             <div id="level-up-overlay" class="level-up-overlay">
                 <div class="level-up-text">LEVEL UP!</div>
                 <div class="level-up-subtext">Your stats have increased.</div>
+            </div>
+
+            <!-- Jin Woo Tutorial Modal -->
+            <div class="modal-overlay" id="tutorial-modal">
+                <div class="modal system-window" style="border-color: var(--sys-gold); max-width: 90%;">
+                    <div class="modal-header text-gold"
+                        style="font-size: 1.5rem; border-bottom: 1px solid rgba(250,204,21,0.3); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        SUNG JIN-WOO</div>
+                    <div class="tutorial-text" id="tutorial-text"
+                        style="line-height: 1.7; margin-bottom: 1.5rem; font-size: 1.15rem; color: #FFF;">
+                        "Arise, Player.<br><br>The System chose you for a reason. Your 90-Day transformation begins
+                        today.<br><br>Complete your Daily Quests below to gain EXP. If you complete them everyday, your
+                        Combo Streak will multiply your gains.<br><br>Do not fail. Weakness is a choice."
+                    </div>
+                    <button class="btn-sys" id="btn-close-tutorial"
+                        style="border-color: var(--sys-gold); color: var(--sys-gold); box-shadow: 0 0 15px rgba(250,204,21,0.2);">UNDERSTOOD</button>
+                </div>
             </div>
 
             <header class="header">
@@ -110,7 +148,10 @@
             <!-- 90 Day Transformation Banner -->
             <section class="transformation-section">
                 <div class="trans-header">
-                    <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION</span>
+                    <span><i class="fas fa-fire text-gold"></i> 90-DAY TRANSFORMATION <i class="fas fa-edit text-cyan"
+                            id="btn-edit-quest"
+                            style="cursor:pointer; margin-left: 10px; font-size: 0.9rem; transition: 0.3s;"
+                            title="Edit Parameters"></i></span>
                     <span class="days-remaining">DAYS LEFT: <span id="days-left" class="text-cyan">90</span></span>
                 </div>
                 <div class="trans-content">
@@ -138,6 +179,9 @@
                 <ul class="quest-list" id="habit-list">
                     <!-- Quests via JS -->
                 </ul>
+
+                <!-- MASSIVE SPACER TO GUARANTEE OVERLAP FIX -->
+                <div style="height: 150px; width: 100%; border: 1px dashed transparent;"></div>
             </section>
 
             <button class="fab-btn" id="add-fab-btn">

@@ -18,6 +18,15 @@ const elements = {
     setupProtein: document.getElementById('setup-protein'),
     setupWorkout: document.getElementById('setup-workout'),
     btnAcceptQuest: document.getElementById('btn-accept-quest'),
+    btnEditQuest: document.getElementById('btn-edit-quest'),
+
+    // AI Elements
+    aiWeight: document.getElementById('ai-weight'),
+    aiHeight: document.getElementById('ai-height'),
+    aiGoal: document.getElementById('ai-goal'),
+    btnAutoGen: document.getElementById('btn-auto-gen'),
+
+    // Dashboard
     btnLogout: document.getElementById('btn-logout'),
     dispPlayerName: document.getElementById('display-player-name'),
     dispCals: document.getElementById('disp-cals'),
@@ -36,7 +45,11 @@ const elements = {
     habitInput: document.getElementById('habit-input'),
     cancelBtn: document.getElementById('cancel-btn'),
     saveBtn: document.getElementById('save-btn'),
-    levelUpOverlay: document.getElementById('level-up-overlay')
+    levelUpOverlay: document.getElementById('level-up-overlay'),
+
+    // Tutorial
+    tutorialModal: document.getElementById('tutorial-modal'),
+    btnCloseTutorial: document.getElementById('btn-close-tutorial')
 };
 
 // --- DATA CONNECTION (BACKEND API) ---
@@ -45,10 +58,10 @@ async function apiCall(endpoint, method = 'GET', body = null) {
         const options = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) options.body = JSON.stringify(body);
         const response = await fetch(endpoint, options);
-        if (!response.ok) throw new Error('Network response non-200');
+        if (!response.ok) throw new Error('API Error');
         return await response.json();
     } catch (e) {
-        console.error('[SYSTEM ERROR] API failed attached to:', endpoint, e);
+        console.error('[SYSTEM ERROR]', e);
         return null;
     }
 }
@@ -61,7 +74,6 @@ async function navigate() {
         screens.login.classList.add('active');
         elements.btnAwaken.textContent = 'AWAKEN';
     } else {
-        // Fetch or Sync local stat data with DB
         const data = await apiCall('/api/player', 'POST', { userId: user });
         if (data) {
             playerStats = { exp: data.exp, level: data.level, str: data.str, agi: data.agi };
@@ -75,13 +87,14 @@ async function navigate() {
             } else {
                 screens.dashboard.classList.add('active');
                 initDashboard();
+
+                // Trigger Jin-Woo logic if totally new
+                if (playerStats.level === 1 && playerStats.exp === 0 && !localStorage.getItem('tutorial_seen_' + user)) {
+                    elements.tutorialModal.classList.add('active');
+                }
             }
         } else {
-            // DB fail fallback
-            alert('[SYSTEM] Connection to Central Database failed. Please try again.');
-            localStorage.removeItem('fittrack_user');
-            user = null;
-            screens.login.classList.add('active');
+            alert('[SYSTEM ERROR] Make sure your server is running and database is connected!');
             elements.btnAwaken.textContent = 'AWAKEN';
         }
     }
@@ -94,10 +107,46 @@ elements.btnAwaken.addEventListener('click', () => {
         user = name;
         localStorage.setItem('fittrack_user', user);
         navigate();
-    } else {
-        alert("[SYSTEM ALERT] Player ID cannot be empty.");
     }
 });
+
+// --- AI GENERATOR SYSTEM ---
+elements.btnAutoGen.addEventListener('click', () => {
+    const w = parseFloat(elements.aiWeight.value);
+    const h = parseFloat(elements.aiHeight.value);
+    const goal = elements.aiGoal.value;
+
+    if (!w || !h) {
+        alert('[SYSTEM] Please input valid Weight and Height for Assessment.');
+        return;
+    }
+
+    // Basal Metabolic Rate Math (Mifflin-St Jeor rough avg)
+    let bmr = (10 * w) + (6.25 * h) - (5 * 25) + 5;
+    let tdee = bmr * 1.55; // Moderate activity multiplier
+
+    let targetCals = 0;
+    let targetProtein = Math.round(w * 2.2); // 2.2g per kg highly optimal
+    let workoutPlan = "";
+
+    if (goal === 'cut') {
+        targetCals = Math.round(tdee - 500);
+        workoutPlan = `Mon: Push (Chest, Shoulders, Triceps) + 20m Cardio\nTue: Pull (Back, Biceps) + Core\nWed: Active Rest / Walk\nThu: Legs (Quads, Hams, Calves)\nFri: Upper Body Power + 20m Cardio\nSat: Lower Body Volume\nSun: Complete Rest`;
+    } else {
+        targetCals = Math.round(tdee + 350);
+        workoutPlan = `Mon: Heavy Chest & Triceps (Hypertrophy)\nTue: Heavy Back & Biceps\nWed: Rest & Recover\nThu: Heavy Legs (Squat focus)\nFri: Shoulders, Arms, & Core\nSat: Full Body Weakpoints focus\nSun: Eat & Recover`;
+    }
+
+    elements.setupCals.value = targetCals;
+    elements.setupProtein.value = targetProtein;
+    elements.setupWorkout.value = workoutPlan;
+
+    // Flash border effect
+    const panel = document.getElementById('ai-panel');
+    panel.style.boxShadow = "inset 0 0 20px var(--sys-gold)";
+    setTimeout(() => panel.style.boxShadow = "none", 500);
+});
+
 
 elements.btnAcceptQuest.addEventListener('click', async () => {
     const cals = elements.setupCals.value.trim();
@@ -106,19 +155,36 @@ elements.btnAcceptQuest.addEventListener('click', async () => {
 
     if (cals && protein && workout) {
         elements.btnAcceptQuest.textContent = 'SYNCING...';
-        mainQuest = { startDate: getTodayString(), cals, protein, workout };
+        const sDate = (mainQuest && mainQuest.startDate) ? mainQuest.startDate : getTodayString();
+        mainQuest = { startDate: sDate, cals, protein, workout };
         await apiCall('/api/player/quest', 'POST', { userId: user, ...mainQuest });
         navigate();
     } else {
-        alert("[SYSTEM ALERT] Complete all required parameters to accept quest.");
+        alert("[SYSTEM] Parameters missing.");
     }
 });
 
-elements.btnLogout.addEventListener('click', () => {
-    if (confirm("[SYSTEM CONTEXT] Logout and sleep? This will clear local cache.")) {
-        localStorage.clear();
-        location.reload();
+// Edit Button override
+elements.btnEditQuest.addEventListener('click', () => {
+    if (mainQuest) {
+        elements.setupCals.value = mainQuest.cals;
+        elements.setupProtein.value = mainQuest.protein;
+        elements.setupWorkout.value = mainQuest.workout;
     }
+    screens.dashboard.classList.remove('active');
+    screens.setup.classList.add('active');
+    elements.btnAcceptQuest.textContent = 'UPDATE SYSTEM';
+});
+
+elements.btnLogout.addEventListener('click', () => {
+    localStorage.clear();
+    location.reload();
+});
+
+// Tutorial Dismiss
+elements.btnCloseTutorial.addEventListener('click', () => {
+    elements.tutorialModal.classList.remove('active');
+    localStorage.setItem('tutorial_seen_' + user, 'true');
 });
 
 // --- CORE UTILS ---
@@ -305,9 +371,6 @@ elements.cancelBtn.addEventListener('click', hideModal);
 elements.saveBtn.addEventListener('click', () => {
     const name = elements.habitInput.value.trim();
     if (name) { fetchAddHabit(name); hideModal(); }
-    else {
-        elements.habitInput.style.transform = 'translateX(-10px)'; setTimeout(() => elements.habitInput.style.transform = 'translateX(10px)', 100); setTimeout(() => elements.habitInput.style.transform = 'translateX(0)', 200);
-    }
 });
 elements.habitInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') elements.saveBtn.click(); });
 elements.addModal.addEventListener('click', (e) => { if (e.target === elements.addModal) hideModal(); });
